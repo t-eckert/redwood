@@ -2,6 +2,7 @@ import type { Context, ContextFunction } from 'apollo-server-core'
 import type { Config, CreateHandlerOptions } from 'apollo-server-lambda'
 import { ApolloServer } from 'apollo-server-lambda'
 import type { APIGatewayProxyEvent, Context as LambdaContext } from 'aws-lambda'
+import { GraphQLFormattedError, GraphQLError } from 'graphql'
 
 import type { AuthContextPayload } from 'src/auth'
 import { getAuthenticationContext } from 'src/auth'
@@ -84,6 +85,32 @@ interface GraphQLHandlerOptions extends Config {
   cors?: CreateHandlerOptions['cors']
   onHealthCheck?: CreateHandlerOptions['onHealthCheck']
 }
+
+/**
+ * Formats a GraphQL error
+ * @param error the GraphQLError passed in
+ * @param isDevEnv if the runtime is a development environment
+ * @returns a GraphQL formatted error
+ */
+const formatError = (
+  error: GraphQLError,
+  isDevEnv: boolean
+): GraphQLFormattedError<Record<string, any>> => {
+  if (isDevEnv) {
+    // I want the dev-server to pick this up!?
+    // TODO: Move the error handling into a separate package
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    import('@redwoodjs/dev-server/dist/error')
+      .then(({ handleError }) => {
+        return handleError(error.originalError as Error)
+      })
+      .then(console.log)
+      .catch(() => { })
+  }
+  return error
+}
+
 /**
  * Creates an Apollo GraphQL Server.
  *
@@ -91,6 +118,7 @@ interface GraphQLHandlerOptions extends Config {
  * export const handler = createGraphQLHandler({ schema, context, getCurrentUser })
  * ```
  */
+// t-eckert: Change this to create a handler compatible with Azure Functions
 export const createGraphQLHandler = ({
   context,
   getCurrentUser,
@@ -100,27 +128,14 @@ export const createGraphQLHandler = ({
   ...options
 }: GraphQLHandlerOptions = {}) => {
   const isDevEnv = process.env.NODE_ENV === 'development'
+
   const handler = new ApolloServer({
     // Turn off playground, introspection and debug in production.
     debug: isDevEnv,
     introspection: isDevEnv,
     playground: isDevEnv,
     // Log the errors in the console
-    formatError: (error) => {
-      if (isDevEnv) {
-        // I want the dev-server to pick this up!?
-        // TODO: Move the error handling into a separate package
-        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-        // @ts-ignore
-        import('@redwoodjs/dev-server/dist/error')
-          .then(({ handleError }) => {
-            return handleError(error.originalError as Error)
-          })
-          .then(console.log)
-          .catch(() => {})
-      }
-      return error
-    },
+    formatError: (error) => formatError(error, isDevEnv),
     // Wrap the user's context function in our own
     context: createContextHandler(context, getCurrentUser),
     ...options,
