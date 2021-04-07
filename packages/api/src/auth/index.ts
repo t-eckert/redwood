@@ -4,6 +4,8 @@ import type { SupportedAuthTypes } from '@redwoodjs/auth'
 
 import type { GlobalContext } from 'src/globalContext'
 
+import type { AuthorizationHeader } from '../interfaces'
+
 import { decodeToken } from './decoders'
 
 // This is shared by `@redwoodjs/web`
@@ -15,10 +17,6 @@ export const getAuthProviderHeader = (
   return event?.headers[AUTH_PROVIDER_HEADER] as SupportedAuthTypes
 }
 
-export interface AuthorizationHeader {
-  schema: 'Bearer' | 'Basic' | string
-  token: string
-}
 /**
  * Split the `Authorization` header into a schema and token part.
  */

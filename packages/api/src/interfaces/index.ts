@@ -1,3 +1,4 @@
+import AuthorizationHeader from "./AuthorizationHeader"
 import MakeServicesInterface from "./MakeServicesInterface"
 
-export { MakeServicesInterface }
+export { AuthorizationHeader, MakeServicesInterface }

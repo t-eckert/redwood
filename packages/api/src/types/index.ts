@@ -1,6 +1,13 @@
-import GraphQLTypeWithFields from "./GraphQLTypeWithFields"
-import ImportedServices from "./ImportedServices"
-import MakeServices from "./MakeServices"
-import Services from "./Services"
+import GetCurrentUser from './GetCurrentUser'
+import GraphQLTypeWithFields from './GraphQLTypeWithFields'
+import ImportedServices from './ImportedServices'
+import MakeServices from './MakeServices'
+import Services from './Services'
 
-export { GraphQLTypeWithFields, ImportedServices, MakeServices, Services }
+export {
+  GetCurrentUser,
+  GraphQLTypeWithFields,
+  ImportedServices,
+  MakeServices,
+  Services,
+}
